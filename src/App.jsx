@@ -1,27 +1,27 @@
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient("https://https://ugdmbcekdmznjcjuolsv.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnZG1iY2VrZG16bmpjanVvbHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjUxMTI2MDMsImV4cCI6MjA0MDY4ODYwM30.vVRBN_Axpj63-6YOlPSfc5xdD47IoU2C5UCFIyr6HAc");
+import './App.css'
+import { useState, useEffect } from 'react'
+import { supabase } from './supabaseClient'
+import Auth from './Auth'
+import Account from './Account'
 
 function App() {
-  const [countries, setCountries] = useState([]);
+  const [session, setSession] = useState(null)
 
   useEffect(() => {
-    getCountries();
-  }, []);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
 
-  async function getCountries() {
-    const { data } = await supabase.from("countries").select();
-    setCountries(data);
-  }
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
 
   return (
-    <ul>
-      {countries.map((country) => (
-        <li key={country.name}>{country.name}</li>
-      ))}
-    </ul>
-  );
+    <div className="container" style={{ padding: '50px 0 100px 0' }}>
+      {!session ? <Auth /> : <Account key={session.user.id} session={session} />}
+    </div>
+  )
 }
 
-export default App;
+export default App
