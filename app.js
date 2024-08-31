@@ -8,15 +8,20 @@ document.getElementById('signup-form')?.addEventListener('submit', async (e) => 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
-    const { error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-    });
-    
-    if (error) {
-        alert('Error signing up: ' + error.message);
-    } else {
-        alert('Sign-up successful! Please check your email to confirm your account.');
+    try {
+        const { error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+        });
+
+        if (error) {
+            alert('Error signing up: ' + error.message);
+        } else {
+            alert('Sign-up successful! Please check your email to confirm your account.');
+        }
+    } catch (err) {
+        console.error('Unexpected error:', err);
+        alert('An unexpected error occurred. Please try again later.');
     }
 });
 
