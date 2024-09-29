@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/NTUMED/static/css/main.8ccfc8a9.css",
+    "main.js": "/NTUMED/static/js/main.c035653a.js",
+    "static/js/952.a40ffc36.chunk.js": "/NTUMED/static/js/952.a40ffc36.chunk.js",
+    "index.html": "/NTUMED/index.html",
+    "main.8ccfc8a9.css.map": "/NTUMED/static/css/main.8ccfc8a9.css.map",
+    "main.c035653a.js.map": "/NTUMED/static/js/main.c035653a.js.map",
+    "952.a40ffc36.chunk.js.map": "/NTUMED/static/js/952.a40ffc36.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8ccfc8a9.css",
+    "static/js/main.c035653a.js"
+  ]
+}
