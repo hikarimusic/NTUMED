@@ -218,7 +218,22 @@ function App() {
                     threads.find(t => t.id === selectedThread)?.title === 'TOP NEWS') && 
                     ` [${new Date(threads.find(t => t.id === selectedThread)?.created_at).toLocaleDateString()}]`}
                 </h2>
-                <form onSubmit={handlePostSubmit} className="mb-4">
+                <div className="space-y-4 mb-6">
+                  {posts.map((post, index) => (
+                    <div key={post.id} className="border-b pb-2">
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{index + 1}. {post.author_name}</span>
+                        <span>{new Date(post.created_at).toLocaleString()}</span>
+                      </div>
+                      <div className="mt-1 prose prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {post.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handlePostSubmit} className="mt-6">
                   <input
                     type="text"
                     value={postName}
@@ -236,21 +251,6 @@ function App() {
                     發布
                   </button>
                 </form>
-                <div className="space-y-4">
-                  {posts.map((post, index) => (
-                    <div key={post.id} className="border-b pb-2">
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>{index + 1}. {post.author_name}</span>
-                        <span>{new Date(post.created_at).toLocaleString()}</span>
-                      </div>
-                      <div className="mt-1 prose prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {post.content}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
           </div>
