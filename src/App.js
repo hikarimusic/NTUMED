@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -11,9 +13,13 @@ function App() {
   const [newThread, setNewThread] = useState('');
   const [newPost, setNewPost] = useState('');
   const [postName, setPostName] = useState('');
+  const [dailyCase, setDailyCase] = useState(null);
+  const [topNews, setTopNews] = useState(null);
 
   useEffect(() => {
     fetchThreads();
+    fetchDailyCase();
+    fetchTopNews();
   }, []);
 
   useEffect(() => {
@@ -32,6 +38,40 @@ function App() {
     else setThreads(data);
   }
 
+  async function fetchDailyCase() {
+    const { data, error } = await supabase
+      .from('threads')
+      .select('*')
+      .eq('title', 'THE CASE')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error('Error fetching daily case:', error);
+      setDailyCase(null);
+    } else {
+      setDailyCase(data);
+    }
+  }
+
+  async function fetchTopNews() {
+    const { data, error } = await supabase
+      .from('threads')
+      .select('*')
+      .eq('title', 'TOP NEWS')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error('Error fetching top news:', error);
+      setTopNews(null);
+    } else {
+      setTopNews(data);
+    }
+  }
+
   async function fetchPosts(threadId) {
     const { data, error } = await supabase
       .from('posts')
@@ -47,12 +87,20 @@ function App() {
     e.preventDefault();
     if (!newThread.trim()) return;
 
+    // Prevent users from creating "THE CASE" or "TOP NEWS" threads
+    if (newThread.toUpperCase() === 'THE CASE' || newThread.toUpperCase() === 'TOP NEWS') {
+      alert('Only administrators can create THE CASE or TOP NEWS threads.');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('threads')
-      .insert([{ title: newThread }]);
+      .insert([{ title: newThread }])
+      .select();
 
-    if (error) console.error('Error adding thread:', error);
-    else {
+    if (error) {
+      console.error('Error adding thread:', error);
+    } else if (data && data[0]) {
       setNewThread('');
       fetchThreads();
     }
@@ -77,6 +125,19 @@ function App() {
     }
   }
 
+  // Function to check for new daily case and top news
+  async function checkForUpdates() {
+    await fetchDailyCase();
+    await fetchTopNews();
+    fetchThreads(); // Refresh all threads to include any new special threads
+  }
+
+  // Call this function periodically or when the app regains focus
+  useEffect(() => {
+    const interval = setInterval(checkForUpdates, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-600 text-white p-4">
@@ -86,6 +147,38 @@ function App() {
       <main className="container mx-auto p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1">
+            <div className="bg-white shadow rounded-lg p-4 mb-4">
+              <h2 className="text-xl font-semibold mb-4">今日病例</h2>
+              {dailyCase ? (
+                <div 
+                  onClick={() => setSelectedThread(dailyCase.id)}
+                  className="p-2 bg-yellow-100 rounded cursor-pointer hover:bg-yellow-200"
+                >
+                  <strong>THE CASE</strong>
+                  <p className="text-sm text-gray-600">
+                    {new Date(dailyCase.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <p>No case available today.</p>
+              )}
+            </div>
+            <div className="bg-white shadow rounded-lg p-4 mb-4">
+              <h2 className="text-xl font-semibold mb-4">重要訊息</h2>
+              {topNews ? (
+                <div 
+                  onClick={() => setSelectedThread(topNews.id)}
+                  className="p-2 bg-yellow-100 rounded cursor-pointer hover:bg-yellow-200"
+                >
+                  <strong>TOP NEWS</strong>
+                  <p className="text-sm text-gray-600">
+                    {new Date(topNews.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <p>No important news available.</p>
+              )}
+            </div>
             <div className="bg-white shadow rounded-lg p-4">
               <h2 className="text-xl font-semibold mb-4">討論串</h2>
               <form onSubmit={handleThreadSubmit} className="mb-4">
@@ -107,7 +200,9 @@ function App() {
                     onClick={() => setSelectedThread(thread.id)}
                     className={`p-2 rounded cursor-pointer ${selectedThread === thread.id ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
                   >
-                    {thread.title}
+                    {(thread.title === 'THE CASE' || thread.title === 'TOP NEWS') 
+                      ? `${thread.title} [${new Date(thread.created_at).toLocaleDateString()}]`
+                      : thread.title}
                   </li>
                 ))}
               </ul>
@@ -119,6 +214,9 @@ function App() {
               <div className="bg-white shadow rounded-lg p-4">
                 <h2 className="text-xl font-semibold mb-4">
                   {threads.find(t => t.id === selectedThread)?.title}
+                  {(threads.find(t => t.id === selectedThread)?.title === 'THE CASE' || 
+                    threads.find(t => t.id === selectedThread)?.title === 'TOP NEWS') && 
+                    ` [${new Date(threads.find(t => t.id === selectedThread)?.created_at).toLocaleDateString()}]`}
                 </h2>
                 <form onSubmit={handlePostSubmit} className="mb-4">
                   <input
@@ -131,7 +229,7 @@ function App() {
                   <textarea
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
-                    placeholder="寫下你的回覆..."
+                    placeholder="寫下你的回覆... (支援 Markdown 語法)"
                     className="w-full p-2 border rounded h-24"
                   />
                   <button type="submit" className="mt-2 w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
@@ -145,7 +243,11 @@ function App() {
                         <span>{index + 1}. {post.author_name}</span>
                         <span>{new Date(post.created_at).toLocaleString()}</span>
                       </div>
-                      <p className="mt-1">{post.content}</p>
+                      <div className="mt-1 prose prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {post.content}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   ))}
                 </div>
