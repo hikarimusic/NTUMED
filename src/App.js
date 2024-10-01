@@ -47,6 +47,18 @@ function App() {
       contextRef.current = ctx;
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Add touch event listeners
+      canvas.addEventListener('touchstart', handleTouchStart);
+      canvas.addEventListener('touchmove', handleTouchMove);
+      canvas.addEventListener('touchend', handleTouchEnd);
+
+      // Remove event listeners on cleanup
+      return () => {
+        canvas.removeEventListener('touchstart', handleTouchStart);
+        canvas.removeEventListener('touchmove', handleTouchMove);
+        canvas.removeEventListener('touchend', handleTouchEnd);
+      };
     }
   }, [isDrawingMode]);
 
@@ -173,6 +185,36 @@ function App() {
     setIsDrawingMode(!isDrawingMode);
   }
 
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    contextRef.current.lineTo(x, y);
+    contextRef.current.stroke();
+  };
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+    contextRef.current.closePath();
+    setIsDrawing(false);
+  };
+
+  // Mouse event handlers
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent;
     contextRef.current.beginPath();
@@ -205,6 +247,7 @@ function App() {
     const interval = setInterval(checkForUpdates, 60000);
     return () => clearInterval(interval);
   }, []);
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -304,7 +347,7 @@ function App() {
               </ul>
             </div>
           </div>
-
+  
           <div className="md:col-span-2">
             {selectedThread && (
               <div className="bg-white shadow rounded-lg p-4">
@@ -348,9 +391,6 @@ function App() {
                         onMouseMove={draw}
                         onMouseUp={stopDrawing}
                         onMouseOut={stopDrawing}
-                        onTouchStart={startDrawing}
-                        onTouchMove={draw}
-                        onTouchEnd={stopDrawing}
                         className="border border-gray-300 touch-none"
                         style={{touchAction: 'none'}}
                       />
