@@ -198,7 +198,7 @@ function App() {
   };
 
   const handleTouchMove = (e) => {
-    if (!isDrawing) return;
+    // if (!isDrawing) return;
     e.preventDefault();
     const touch = e.touches[0];
     const rect = canvasRef.current.getBoundingClientRect();
@@ -335,7 +335,7 @@ function App() {
                 </button>
               </form>
               <ul className="space-y-2 mb-4">
-                {(showAllThreads ? threads : threads.slice(0, 5)).map((thread) => (
+                {(showAllThreads ? threads : threads.slice(0, 10)).map((thread) => (
                   <li 
                     key={thread.id}
                     onClick={() => setSelectedThread(thread.id)}
