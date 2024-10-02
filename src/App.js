@@ -48,12 +48,10 @@ function App() {
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Add touch event listeners
       canvas.addEventListener('touchstart', handleTouchStart);
       canvas.addEventListener('touchmove', handleTouchMove);
       canvas.addEventListener('touchend', handleTouchEnd);
 
-      // Remove event listeners on cleanup
       return () => {
         canvas.removeEventListener('touchstart', handleTouchStart);
         canvas.removeEventListener('touchmove', handleTouchMove);
@@ -271,22 +269,6 @@ function App() {
             {!showAllThreads && (
               <>
                 <div className="bg-white shadow rounded-lg p-4 mb-4">
-                  <h2 className="text-xl font-semibold mb-4">今日病例</h2>
-                  {dailyCase ? (
-                    <div 
-                      onClick={() => setSelectedThread(dailyCase.id)}
-                      className="p-2 bg-yellow-100 rounded cursor-pointer hover:bg-yellow-200"
-                    >
-                      <strong>THE CASE</strong>
-                      <p className="text-sm text-gray-600">
-                        {new Date(dailyCase.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <p>No case available today.</p>
-                  )}
-                </div>
-                <div className="bg-white shadow rounded-lg p-4 mb-4">
                   <h2 className="text-xl font-semibold mb-4">重要訊息</h2>
                   {topNews ? (
                     <div 
@@ -300,6 +282,22 @@ function App() {
                     </div>
                   ) : (
                     <p>No important news available.</p>
+                  )}
+                </div>
+                <div className="bg-white shadow rounded-lg p-4 mb-4">
+                  <h2 className="text-xl font-semibold mb-4">今日病例</h2>
+                  {dailyCase ? (
+                    <div 
+                      onClick={() => setSelectedThread(dailyCase.id)}
+                      className="p-2 bg-yellow-100 rounded cursor-pointer hover:bg-yellow-200"
+                    >
+                      <strong>THE CASE</strong>
+                      <p className="text-sm text-gray-600">
+                        {new Date(dailyCase.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ) : (
+                    <p>No case available today.</p>
                   )}
                 </div>
                 <div className="bg-white shadow rounded-lg p-4 mb-4">
@@ -385,14 +383,12 @@ function App() {
                     <div className="mb-2">
                       <canvas
                         ref={canvasRef}
-                        width={500}
-                        height={300}
                         onMouseDown={startDrawing}
                         onMouseMove={draw}
                         onMouseUp={stopDrawing}
                         onMouseOut={stopDrawing}
-                        className="border border-gray-300 touch-none"
-                        style={{touchAction: 'none'}}
+                        className="border border-gray-300 touch-none w-full"
+                        style={{touchAction: 'none', height: '300px'}}
                       />
                     </div>
                   ) : (
